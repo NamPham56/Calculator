@@ -1,6 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import React, { useState } from 'react';
-import { evaluate } from 'mathjs';
+import { evaluate, factorial } from 'mathjs';
 
 const CalculatorScreen = () => {
     const [input, setInput] = useState("");
@@ -21,21 +21,41 @@ const CalculatorScreen = () => {
 
     const handleEqual = () => {
         try {
-            const evalResult = evaluate(input.replace("^", "**"));
+            // thay ^ thành ** cho JS
+            const evalResult = evaluate(input.replace(/\^/g, "**"));
             setResult(evalResult.toString());
         } catch (error) {
             setResult("Error");
         }
     };
 
+    const handleFactorial = () => {
+        try {
+            const number = parseInt(input);
+            if (!isNaN(number)) {
+                const fact = factorial(number);
+                setResult(fact.toString());
+            } else {
+                setResult("Error");
+            }
+        } catch {
+            setResult("Error");
+        }
+    };
+
+    const handleToggleSign = () => {
+        if (input.startsWith("-")) setInput(input.slice(1));
+        else setInput("-" + input);
+    };
+
     const buttons = [
-        ["AC", "DEL", "(", ")"],
-        ["sin(", "cos(", "tan(", "^"],
-        ["7", "8", "9", "/"],
-        ["4", "5", "6", "*"],
-        ["1", "2", "3", "-"],
-        ["0", ".", "log(", "+"],
-        ["sqrt(", "π", "e", "="]
+        ["AC", "DEL", "(", ")", "n!"],
+        ["sin(", "cos(", "tan(", "^", "ln("],
+        ["7", "8", "9", "/", "exp("],
+        ["4", "5", "6", "*", "x²"],
+        ["1", "2", "3", "-", "x³"],
+        ["0", ".", "log(", "+", "%"],
+        ["sqrt(", "π", "e", "±", "="]
     ];
 
     return (
@@ -57,7 +77,7 @@ const CalculatorScreen = () => {
                                     btn === "=" && { backgroundColor: "#4CAF50" },
                                     btn === "AC" && { backgroundColor: "#f44336" },
                                     btn === "DEL" && { backgroundColor: "#ff9800" },
-                                    btn.match(/sin|cos|tan|log|sqrt|\^/) && { backgroundColor: "#2196F3" },
+                                    btn.match(/sin|cos|tan|log|sqrt|ln|exp|\^|n!|x²|x³/) && { backgroundColor: "#2196F3" },
                                     btn.match(/[0-9]/) && { backgroundColor: "#555" }
                                 ]}
                                 onPress={() => {
@@ -66,6 +86,11 @@ const CalculatorScreen = () => {
                                     else if (btn === "=") handleEqual();
                                     else if (btn === "π") handlePress("3.14159");
                                     else if (btn === "e") handlePress("2.718");
+                                    else if (btn === "n!") handleFactorial();
+                                    else if (btn === "x²") handlePress("^2");
+                                    else if (btn === "x³") handlePress("^3");
+                                    else if (btn === "±") handleToggleSign();
+                                    else if (btn === "%") handlePress("/100");
                                     else handlePress(btn);
                                 }}
                             >
