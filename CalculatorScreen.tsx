@@ -21,7 +21,6 @@ const CalculatorScreen = () => {
 
     const handleEqual = () => {
         try {
-            // thay ^ thành ** cho JS
             const evalResult = evaluate(input.replace(/\^/g, "**"));
             setResult(evalResult.toString());
         } catch (error) {
@@ -55,7 +54,9 @@ const CalculatorScreen = () => {
         ["4", "5", "6", "*", "x²"],
         ["1", "2", "3", "-", "x³"],
         ["0", ".", "log(", "+", "%"],
-        ["sqrt(", "π", "e", "±", "="]
+        ["sqrt(", "π", "e", "±", "="],
+        ["xʸ", "∛", "sinh(", "cosh(", "tanh("],
+        ["rand", "deg", "rad"]
     ];
 
     return (
@@ -77,7 +78,7 @@ const CalculatorScreen = () => {
                                     btn === "=" && { backgroundColor: "#4CAF50" },
                                     btn === "AC" && { backgroundColor: "#f44336" },
                                     btn === "DEL" && { backgroundColor: "#ff9800" },
-                                    btn.match(/sin|cos|tan|log|sqrt|ln|exp|\^|n!|x²|x³/) && { backgroundColor: "#2196F3" },
+                                    btn.match(/sin|cos|tan|log|sqrt|ln|exp|sinh|cosh|tanh|\^|n!|x²|x³|xʸ|∛/) && { backgroundColor: "#2196F3" },
                                     btn.match(/[0-9]/) && { backgroundColor: "#555" }
                                 ]}
                                 onPress={() => {
@@ -89,8 +90,27 @@ const CalculatorScreen = () => {
                                     else if (btn === "n!") handleFactorial();
                                     else if (btn === "x²") handlePress("^2");
                                     else if (btn === "x³") handlePress("^3");
+                                    else if (btn === "xʸ") handlePress("^");
+                                    else if (btn === "∛") handlePress("^(1/3)");
                                     else if (btn === "±") handleToggleSign();
                                     else if (btn === "%") handlePress("/100");
+                                    else if (btn === "rand") handlePress(Math.random().toString());
+                                    else if (btn === "deg") {
+                                        try {
+                                            const val = evaluate(input.replace(/\^/g, "**"));
+                                            setResult((val * (180 / Math.PI)).toString());
+                                        } catch {
+                                            setResult("Error");
+                                        }
+                                    }
+                                    else if (btn === "rad") {
+                                        try {
+                                            const val = evaluate(input.replace(/\^/g, "**"));
+                                            setResult((val * (Math.PI / 180)).toString());
+                                        } catch {
+                                            setResult("Error");
+                                        }
+                                    }
                                     else handlePress(btn);
                                 }}
                             >
