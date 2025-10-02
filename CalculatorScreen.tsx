@@ -1,10 +1,12 @@
-import { StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, ScrollView, FlatList } from 'react-native';
 import React, { useState } from 'react';
 import { evaluate, factorial } from 'mathjs';
 
 const CalculatorScreen = () => {
     const [input, setInput] = useState("");
     const [result, setResult] = useState("");
+    const [history, setHistory] = useState<string[]>([]);   // Lưu lịch sử
+    const [memory, setMemory] = useState<number | null>(null); // Bộ nhớ
 
     const handlePress = (value: string) => {
         setInput(input + value);
@@ -23,6 +25,7 @@ const CalculatorScreen = () => {
         try {
             const evalResult = evaluate(input.replace(/\^/g, "**"));
             setResult(evalResult.toString());
+            setHistory([`${input} = ${evalResult}`, ...history]); // Lưu lịch sử
         } catch (error) {
             setResult("Error");
         }
@@ -34,6 +37,7 @@ const CalculatorScreen = () => {
             if (!isNaN(number)) {
                 const fact = factorial(number);
                 setResult(fact.toString());
+                setHistory([`${input}! = ${fact}`, ...history]);
             } else {
                 setResult("Error");
             }
@@ -47,6 +51,19 @@ const CalculatorScreen = () => {
         else setInput("-" + input);
     };
 
+    // Xử lý bộ nhớ
+    const handleMemory = (action: string) => {
+        try {
+            const val = evaluate(input.replace(/\^/g, "**"));
+            if (action === "MC") setMemory(null);
+            if (action === "MR" && memory !== null) setInput(input + memory.toString());
+            if (action === "M+") setMemory((memory ?? 0) + val);
+            if (action === "M-") setMemory((memory ?? 0) - val);
+        } catch {
+            setResult("Error");
+        }
+    };
+
     const buttons = [
         ["AC", "DEL", "(", ")", "n!"],
         ["sin(", "cos(", "tan(", "^", "ln("],
@@ -56,17 +73,32 @@ const CalculatorScreen = () => {
         ["0", ".", "log(", "+", "%"],
         ["sqrt(", "π", "e", "±", "="],
         ["xʸ", "∛", "sinh(", "cosh(", "tanh("],
-        ["rand", "deg", "rad"]
+        ["rand", "deg", "rad"],
+        ["MC", "MR", "M+", "M-"] // hàng nút bộ nhớ
     ];
 
     return (
         <View style={styles.container}>
+            {/* Lịch sử */}
+            <View style={styles.historyBox}>
+                <FlatList
+                    data={history}
+                    keyExtractor={(item, index) => index.toString()}
+                    renderItem={({ item }) => (
+                        <Text style={styles.historyText}>{item}</Text>
+                    )}
+                />
+            </View>
+
+            {/* Màn hình hiển thị */}
             <View style={styles.display}>
                 <ScrollView horizontal contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end' }}>
                     <Text style={styles.inputText}>{input}</Text>
                 </ScrollView>
                 <Text style={styles.resultText}>{result}</Text>
             </View>
+
+            {/* Bàn phím */}
             <View style={styles.keyboard}>
                 {buttons.map((row, rowIndex) => (
                     <View key={rowIndex} style={styles.row}>
@@ -95,6 +127,7 @@ const CalculatorScreen = () => {
                                     else if (btn === "±") handleToggleSign();
                                     else if (btn === "%") handlePress("/100");
                                     else if (btn === "rand") handlePress(Math.random().toString());
+                                    else if (["MC", "MR", "M+", "M-"].includes(btn)) handleMemory(btn);
                                     else if (btn === "deg") {
                                         try {
                                             const val = evaluate(input.replace(/\^/g, "**"));
@@ -133,6 +166,17 @@ const styles = StyleSheet.create({
         padding: 8,
         justifyContent: "flex-end"
     },
+    historyBox: {
+        maxHeight: 100,
+        marginBottom: 5,
+        padding: 5,
+        backgroundColor: "#111",
+        borderRadius: 5
+    },
+    historyText: {
+        color: "#aaa",
+        fontSize: 14
+    },
     display: {
         minHeight: 120,
         justifyContent: "flex-end",
@@ -167,7 +211,7 @@ const styles = StyleSheet.create({
         alignItems: "center"
     },
     btnText: {
-        fontSize: 18,
+        fontSize: 12,
         color: "#fff",
         fontWeight: "500"
     }
